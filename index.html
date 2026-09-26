@@ -108,8 +108,16 @@
   </div>
 </div>
 
+<iframe name="hiddenSubmitFrame" style="display:none;"></iframe>
+<form id="bookForm" method="POST" target="hiddenSubmitFrame" style="display:none;">
+  <input type="hidden" name="date" id="formDate">
+  <input type="hidden" name="time" id="formTime">
+  <input type="hidden" name="name" id="formName">
+</form>
+
 <script>
   const API = 'https://script.google.com/macros/s/AKfycbxyCMh9oMefaZeMQRWPDWa8hni_Ps08Z43q5zFW8OCeEvqHzbyG9f1xTKWMairplCib2g/exec';
+  document.getElementById('bookForm').action = API;
   const WD = ['日','一','二','三','四','五','六'];
   const pad = n => n < 10 ? '0' + n : '' + n;
   const slotKey = (d, t) => d + '_' + t;
@@ -195,23 +203,20 @@
     const name = document.getElementById('modalName').value.trim();
     if (!name) { alert('請輸入姓名'); return; }
     const { dateStr, time, d, wd } = currentSlot;
-    document.getElementById('modalOverlay').style.display = 'none';
-    try {
-      const res = await fetch(API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ date: dateStr, time: time, name: name })
-      });
-      const result = await res.json();
-      if (result.success === false) {
-        alert('抱歉，這個時段剛剛被別人訂走了，請重新選擇');
-        loadBooked();
-        return;
-      }
-    } catch (err) {
-      alert('連線失敗，請稍後再試一次');
+
+    if (booked.has(slotKey(dateStr, time))) {
+      alert('抱歉，這個時段剛剛被別人訂走了，請重新選擇');
+      document.getElementById('modalOverlay').style.display = 'none';
+      loadBooked();
       return;
     }
+
+    document.getElementById('modalOverlay').style.display = 'none';
+    document.getElementById('formDate').value = dateStr;
+    document.getElementById('formTime').value = time;
+    document.getElementById('formName').value = name;
+    document.getElementById('bookForm').submit();
+
     booked.add(slotKey(dateStr, time));
     buildCalendar();
     const msg = '我想預約 ' + (m + 1) + '/' + d + '（' + WD[wd] + '）' + time + '，姓名：' + name;
