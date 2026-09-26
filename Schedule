@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>甲面超人｜預約時段</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ivory:#f6f1e8; --ivory-deep:#efe7d8; --ink:#2c2621; --ink-soft:#6b625a;
+    --rose:#b07a68; --line:#d9cdba; --paper:#fbf8f2;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; background:var(--ivory); color:var(--ink); font-family:'Noto Serif TC', serif; }
+  body{ min-height:100vh; display:flex; justify-content:center; padding:48px 16px;
+    background:radial-gradient(ellipse at 50% 0%, rgba(176,122,104,0.06), transparent 60%), var(--ivory); }
+  .card{ width:100%; max-width:560px; background:var(--paper); border:1px solid var(--line);
+    padding:clamp(28px,6vw,56px) clamp(18px,5vw,40px); position:relative; }
+  .card::before{ content:""; position:absolute; top:10px; right:10px; bottom:10px; left:10px; border:1px solid var(--line); pointer-events:none; }
+  header{ text-align:center; padding-bottom:24px; }
+  .eyebrow{ font-size:14px; letter-spacing:0.16em; color:var(--rose); margin:0 0 8px; }
+  h1{ font-size:clamp(19px,5vw,24px); font-weight:700; margin:0; letter-spacing:0.04em; }
+  .rule{ border:none; border-top:1px solid var(--line); margin:20px auto 24px; width:64px; }
+  .legend{ display:flex; justify-content:center; gap:20px; font-size:12px; color:var(--ink-soft); margin-bottom:16px; }
+  .legend span{ display:inline-flex; align-items:center; gap:6px; }
+  .dot{ width:10px; height:10px; display:inline-block; border:1px solid var(--rose); }
+  .dot.off{ background:var(--ivory-deep); border-color:var(--line); }
+  .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:3px; }
+  .cal-wd{ text-align:center; font-size:11px; color:var(--ink-soft); padding-bottom:6px; }
+  .cal-cell{ border:1px solid var(--line); min-height:70px; padding:4px 2px; display:flex; flex-direction:column;
+    align-items:center; background:var(--paper); }
+  .cal-cell.empty{ border:none; background:transparent; }
+  .cal-cell.off{ background:var(--ivory-deep); }
+  .date-num{ font-size:11px; color:var(--ink-soft); margin-bottom:3px; }
+  .slot-wrap{ display:flex; flex-direction:column; gap:2px; width:100%; }
+  .slot-btn{ font-family:'Noto Serif TC', serif; font-size:10px; padding:3px 0; border:1px solid var(--rose);
+    background:transparent; color:var(--rose); cursor:pointer; width:100%; }
+  .slot-btn:hover{ background:var(--rose); color:var(--paper); }
+  .slot-btn.taken{ border-color:var(--line); color:var(--ink-soft); background:var(--ivory-deep);
+    cursor:not-allowed; text-decoration:line-through; }
+  .slot-btn.taken:hover{ background:var(--ivory-deep); color:var(--ink-soft); }
+  footer{ margin-top:30px; padding-top:20px; border-top:1px solid var(--line); text-align:center; }
+  footer p{ margin:0; font-size:12px; line-height:1.7; color:var(--ink-soft); font-weight:300; }
+  .remit-box{ margin-top:30px; padding-top:20px; border-top:1px dashed var(--line); text-align:center; }
+  .remit-box h2{ font-size:15px; letter-spacing:0.1em; margin:0 0 16px; }
+  .remit-account{ font-size:15px; line-height:1.7; color:var(--ink); font-weight:500; margin:0 0 22px; }
+  .remit-label{ font-size:13px; color:var(--ink-soft); margin:0 0 12px; }
+  .remit-form{ display:flex; justify-content:center; gap:8px; flex-wrap:wrap; }
+  .remit-input{ width:120px; padding:9px 12px; font-family:'Noto Serif TC', serif; font-size:15px;
+    letter-spacing:0.1em; text-align:center; color:var(--ink); background:var(--ivory); border:1px solid var(--line); }
+  .remit-input:focus{ outline:none; border-color:var(--rose); }
+  .remit-btn{ padding:9px 22px; font-family:'Noto Serif TC', serif; font-size:14px; font-weight:500;
+    letter-spacing:0.08em; color:var(--paper); background:var(--rose); border:1px solid var(--rose); cursor:pointer; }
+  .remit-btn:hover{ background:transparent; color:var(--rose); }
+  .remit-hint{ font-size:11px; color:var(--ink-soft); margin:10px 0 0; }
+  .modal-overlay{ display:none; position:fixed; inset:0; background:rgba(44,38,33,0.5);
+    align-items:center; justify-content:center; z-index:50; padding:20px; }
+  .modal-box{ background:var(--paper); border:1px solid var(--line); padding:28px 24px; max-width:300px;
+    width:100%; text-align:center; }
+  .modal-date{ font-size:17px; font-weight:600; margin:0 0 16px; }
+  .modal-box input{ width:100%; }
+  .modal-actions{ display:flex; gap:10px; margin-top:16px; justify-content:center; }
+  .modal-cancel{ padding:9px 18px; border:1px solid var(--line); background:transparent; color:var(--ink-soft);
+    font-family:'Noto Serif TC', serif; cursor:pointer; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <header>
+    <p class="eyebrow">甲面超人</p>
+    <h1 id="monthTitle">載入中...</h1>
+  </header>
+
+  <div class="legend">
+    <span><i class="dot"></i>可預約</span>
+    <span><i class="dot off"></i>不可預約 / 已被預約</span>
+  </div>
+
+  <div class="cal-grid" id="calGrid"></div>
+
+  <footer>
+    <p>＊如需預約平日晚上、週五深夜時段，請直接LINE官方帳號</p>
+  </footer>
+
+  <section class="remit-box">
+    <h2>定金匯款資訊</h2>
+    <p class="remit-account">中國信託（822）<br>182540171359</p>
+    <p class="remit-label">完成匯款後，請填入帳號末五碼並回報</p>
+    <div class="remit-form">
+      <input type="text" class="remit-input" id="remitCode" maxlength="5" inputmode="numeric" pattern="[0-9]*" placeholder="末五碼">
+      <button type="button" class="remit-btn" id="remitBtn">回 報 匯 款</button>
+    </div>
+    <p class="remit-hint" id="remitHint">＊按下後會開啟 LINE，訊息已自動填好，直接傳送即可</p>
+  </section>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <p class="modal-date" id="modalDate"></p>
+    <input type="text" id="modalName" class="remit-input" placeholder="請輸入姓名">
+    <div class="modal-actions">
+      <button type="button" id="modalCancel" class="modal-cancel">取消</button>
+      <button type="button" id="modalConfirm" class="remit-btn">確認預約</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = 'https://script.google.com/macros/s/AKfycbxyCMh9oMefaZeMQRWPDWa8hni_Ps08Z43q5zFW8OCeEvqHzbyG9f1xTKWMairplCib2g/exec';
+  const WD = ['日','一','二','三','四','五','六'];
+  const pad = n => n < 10 ? '0' + n : '' + n;
+  const slotKey = (d, t) => d + '_' + t;
+
+  const today = new Date();
+  let y = today.getFullYear(), m = today.getMonth();
+  if (today.getDate() >= 20) { m++; if (m > 11) { m = 0; y++; } }
+  document.getElementById('monthTitle').textContent = y + '年' + (m + 1) + '月 尚可予約時段';
+
+  let booked = new Set();
+  let currentSlot = null;
+
+  function buildCalendar() {
+    const grid = document.getElementById('calGrid');
+    grid.innerHTML = '';
+    WD.forEach(w => {
+      const h = document.createElement('div');
+      h.className = 'cal-wd';
+      h.textContent = w;
+      grid.appendChild(h);
+    });
+    const firstDay = new Date(y, m, 1).getDay();
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    for (let i = 0; i < firstDay; i++) {
+      const e = document.createElement('div');
+      e.className = 'cal-cell empty';
+      grid.appendChild(e);
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const wd = new Date(y, m, d).getDay();
+      const dateStr = y + '-' + pad(m + 1) + '-' + pad(d);
+      const cell = document.createElement('div');
+      cell.className = 'cal-cell';
+      const num = document.createElement('div');
+      num.className = 'date-num';
+      num.textContent = d;
+      cell.appendChild(num);
+
+      if (wd >= 1 && wd <= 4) {
+        cell.classList.add('off');
+      } else {
+        const times = wd === 5 ? ['20:00'] : ['11:00', '16:00', '21:00'];
+        const wrap = document.createElement('div');
+        wrap.className = 'slot-wrap';
+        times.forEach(t => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'slot-btn';
+          btn.textContent = t;
+          if (booked.has(slotKey(dateStr, t))) {
+            btn.disabled = true;
+            btn.classList.add('taken');
+          } else {
+            btn.addEventListener('click', () => openModal(dateStr, t, d, wd));
+          }
+          wrap.appendChild(btn);
+        });
+        cell.appendChild(wrap);
+      }
+      grid.appendChild(cell);
+    }
+  }
+
+  async function loadBooked() {
+    try {
+      const res = await fetch(API);
+      const data = await res.json();
+      booked = new Set((data.bookings || []).map(b => slotKey(b.date, b.time)));
+    } catch (err) { /* 無法連線時仍顯示月曆，僅無法同步已預約狀態 */ }
+    buildCalendar();
+  }
+
+  function openModal(dateStr, time, d, wd) {
+    currentSlot = { dateStr, time, d, wd };
+    document.getElementById('modalDate').textContent = (m + 1) + '/' + d + '（' + WD[wd] + '）' + time;
+    document.getElementById('modalName').value = '';
+    document.getElementById('modalOverlay').style.display = 'flex';
+  }
+  document.getElementById('modalCancel').addEventListener('click', () => {
+    document.getElementById('modalOverlay').style.display = 'none';
+  });
+  document.getElementById('modalConfirm').addEventListener('click', async () => {
+    const name = document.getElementById('modalName').value.trim();
+    if (!name) { alert('請輸入姓名'); return; }
+    const { dateStr, time, d, wd } = currentSlot;
+    document.getElementById('modalOverlay').style.display = 'none';
+    try {
+      const res = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ date: dateStr, time: time, name: name })
+      });
+      const result = await res.json();
+      if (result.success === false) {
+        alert('抱歉，這個時段剛剛被別人訂走了，請重新選擇');
+        loadBooked();
+        return;
+      }
+    } catch (err) {
+      alert('連線失敗，請稍後再試一次');
+      return;
+    }
+    booked.add(slotKey(dateStr, time));
+    buildCalendar();
+    const msg = '我想預約 ' + (m + 1) + '/' + d + '（' + WD[wd] + '）' + time + '，姓名：' + name;
+    window.open('https://line.me/R/oaMessage/@161ghwmf/?' + encodeURIComponent(msg), '_blank');
+  });
+
+  document.getElementById('remitBtn').addEventListener('click', () => {
+    const input = document.getElementById('remitCode');
+    const hint = document.getElementById('remitHint');
+    const code = input.value.trim();
+    if (!/^\d{5}$/.test(code)) {
+      hint.textContent = '請輸入 5 碼數字末五碼';
+      hint.style.color = '#b3453b';
+      input.focus();
+      return;
+    }
+    hint.textContent = '＊按下後會開啟 LINE，訊息已自動填好，直接傳送即可';
+    hint.style.color = '';
+    const message = '我已完成匯款，帳號末五碼：' + code;
+    window.open('https://line.me/R/oaMessage/@161ghwmf/?' + encodeURIComponent(message), '_blank');
+  });
+
+  loadBooked();
+</script>
+
+</body>
+</html>
